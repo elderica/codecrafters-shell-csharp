@@ -63,7 +63,7 @@ class Program
         {
             var c = command[i];
             //Console.WriteLine($"c:{c} state:{state} current:{current}");
-            
+
             switch (state)
             {
                 case LexerState.NORMAL:
@@ -94,7 +94,8 @@ class Program
                     if (c == '\'')
                     {
                         state = LexerState.NORMAL;
-                    } else
+                    }
+                    else
                     {
                         current += c;
                     }
@@ -103,11 +104,13 @@ class Program
                     if (c == '"')
                     {
                         state = LexerState.NORMAL;
-                    } else if (c == '\\'  && i+1 < command.Length && "\"\\$`".Contains(command[i+1]))
+                    }
+                    else if (c == '\\' && i + 1 < command.Length && "\"\\$`".Contains(command[i + 1]))
                     {
-                        current += command[i+1];
+                        current += command[i + 1];
                         i++;
-                    } else
+                    }
+                    else
                     {
                         current += c;
                     }
@@ -124,6 +127,11 @@ class Program
             words.Add(current);
         }
         return [.. words];
+    }
+
+    static string Quote(string s)
+    {
+        return "'" + s.Replace("'", "'\"'\"'") + "'";
     }
 
     static bool Eval(string command)
@@ -218,7 +226,9 @@ class Program
                 else
                 {
                     process.StartInfo.FileName = "/bin/sh";
-                    process.StartInfo.Arguments = $"-c \"{string.Join(" ", parsed)}\"";
+
+                    var args = Quote(cmd) + " " + string.Join(" ", parsed[1..].Select(Quote));
+                    process.StartInfo.Arguments = "-c " + Quote(args);
                 }
                 process.Start();
                 process.WaitForExit();
