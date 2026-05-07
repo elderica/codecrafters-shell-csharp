@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 class Program
 {
@@ -102,6 +103,13 @@ class Program
         else if (cmd == "cd")
         {
             var dirparam = parsed[1];
+
+            if (dirparam == "~")
+            {
+                var homepath = Environment.GetEnvironmentVariable("HOME");
+                if (homepath == null) return true;
+                dirparam = homepath;
+            }
 
             var dirpath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), dirparam));
             var dir = new DirectoryInfo(dirpath);
