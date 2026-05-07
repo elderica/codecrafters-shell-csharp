@@ -1,17 +1,40 @@
+using System.Runtime.InteropServices;
+
 class Program
 {
     static bool Eval(string command)
     {
-        if (command == "exit")
+        var parsed = command.Split(" ");
+        var cmd = parsed.First();
+        if (cmd == "exit")
         {
             return false;
-        } else if (command.StartsWith("echo "))
+        }
+        else if (cmd == "echo")
         {
             Console.WriteLine(command[5..]);
             return true;
-        } else
+        }
+        else if (cmd == "type")
         {
-            Console.WriteLine($"{command}: command not found");
+            var builtins = new string[]
+            {
+                "exit",
+                "echo",
+                "type",  
+            };
+            if (builtins.Contains(parsed[1]))
+            {
+                Console.WriteLine($"{parsed[1]} is a shell builtin");
+            } else
+            {
+                Console.WriteLine($"{parsed[1]}: not found");
+            }
+            return true;
+        }
+        else
+        {
+            Console.WriteLine($"{cmd}: command not found");
             return true;
         }
     }
@@ -22,7 +45,10 @@ class Program
         {
             Console.Write("$ ");
             var command = Console.ReadLine() ?? "";
-            continueq = Eval(command);
+            if (command != "")
+            {
+                continueq = Eval(command);
+            }
         }
 
     }
