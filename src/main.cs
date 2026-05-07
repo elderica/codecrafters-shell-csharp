@@ -19,6 +19,7 @@ class Program
 
         foreach (var path in paths)
         {
+            if (path == "") continue;
             var dir = new DirectoryInfo(path);
             if (!dir.Exists) continue;
 
