@@ -1,7 +1,53 @@
-using System.Runtime.InteropServices;
 
 class Program
 {
+    static FileInfo? SearchExecutable(string cmd)
+    {
+        var envpath = Environment.GetEnvironmentVariable("PATH") ?? "";
+
+        string[]? paths;
+        if (OperatingSystem.IsWindows())
+        {
+            paths = envpath.Split(";");
+        }
+        else
+        {
+            paths = envpath.Split(":");
+        }
+
+        foreach (var path in paths)
+        {
+            var dir = new DirectoryInfo(path);
+            if (!dir.Exists) continue;
+
+            foreach (var file in dir.EnumerateFiles())
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    var basename = Path.GetFileNameWithoutExtension(file.FullName);
+
+                    var ext = file.Extension;
+
+                    if (basename == cmd && ext == ".exe")
+                    {
+                        return file;
+                    }
+                }
+                else
+                {
+                    var filemode = File.GetUnixFileMode(file.FullName);
+                    var execbits = UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+                    if (file.Name == cmd && (filemode & execbits) != 0)
+                    {
+                        return file;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     static bool Eval(string command)
     {
         var parsed = command.Split(" ");
@@ -21,14 +67,26 @@ class Program
             {
                 "exit",
                 "echo",
-                "type",  
+                "type",
             };
-            if (builtins.Contains(parsed[1]))
+
+            var typecmd = parsed[1];
+            if (builtins.Contains(typecmd))
             {
-                Console.WriteLine($"{parsed[1]} is a shell builtin");
-            } else
+                Console.WriteLine($"{typecmd} is a shell builtin");
+            }
+            else
             {
-                Console.WriteLine($"{parsed[1]}: not found");
+                var file = SearchExecutable(typecmd);
+                if (file == null)
+                {
+                    Console.WriteLine($"{typecmd}: not found");
+                }
+                else
+                {
+                    Console.WriteLine($"{typecmd} is {file}");
+                }
+
             }
             return true;
         }
