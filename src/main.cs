@@ -129,7 +129,7 @@ class Program
         return [.. words];
     }
 
-    static string Quote(string s)
+    static string QuoteSingle(string s)
     {
         return "'" + s.Replace("'", "'\"'\"'") + "'";
     }
@@ -214,23 +214,35 @@ class Program
             }
             else
             {
-                using var process = new Process();
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
+                ProcessStartInfo psi;
                 if (OperatingSystem.IsWindows())
                 {
-                    process.StartInfo.FileName = file.FullName;
-                    process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = file.FullName,
+                        Arguments = string.Join(" ", parsed[1..]),
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                    };
                 }
                 else
                 {
-                    process.StartInfo.FileName = "/bin/sh";
-
-                    var args = Quote(cmd) + " " + string.Join(" ", parsed[1..].Select(Quote));
-                    process.StartInfo.Arguments = "-c " + Quote(args);
+                    var inner = QuoteSingle(cmd) + " " + string.Join(" ", parsed[1..].Select(QuoteSingle));
+                    var outer = "\"" + inner.Replace("\"", "\\\"") + "\"";
+                    //Console.WriteLine($"quoted:{args}");
+                    //Console.WriteLine($"quoted quoted:{Quote("-c " + args)}");
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = "/bin/sh",
+                        Arguments = "-c " + outer,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
                 }
-                process.Start();
+                using var process = Process.Start(psi);
+                if (process == null) return true;
                 process.WaitForExit();
                 Console.Write(process.StandardOutput.ReadToEnd());
                 Console.Error.Write(process.StandardError.ReadToEnd());
