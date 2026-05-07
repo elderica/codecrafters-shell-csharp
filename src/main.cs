@@ -101,9 +101,12 @@ class Program
             } else
             {
                 using var process = new Process();
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.FileName = file.FullName;
                 process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
                 process.Start();
+                process.WaitForExit();
             }
             
             return true;
