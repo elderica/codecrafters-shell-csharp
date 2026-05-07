@@ -103,10 +103,20 @@ class Program
                 using var process = new Process();
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.FileName = file.FullName;
-                process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
+                process.StartInfo.RedirectStandardError = true;
+                if (OperatingSystem.IsWindows())
+                {
+                    process.StartInfo.FileName = file.FullName;
+                    process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
+                } else
+                {
+                    process.StartInfo.FileName = "/bin/sh";
+                    process.StartInfo.Arguments = $"-c \"{string.Join(" ", parsed)}\"";
+                }
                 process.Start();
                 process.WaitForExit();
+                Console.Write(process.StandardOutput.ReadToEnd());
+                Console.Error.Write(process.StandardError.ReadToEnd());
             }
             
             return true;
