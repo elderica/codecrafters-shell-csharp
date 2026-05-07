@@ -1,12 +1,24 @@
 class Program
 {
+    static bool Eval(string command)
+    {
+        switch(command)
+        {
+            case "exit":
+                return false;
+            default:
+                Console.WriteLine($"{command}: command not found");
+                return true;
+        }
+    }
     static void Main()
     {
-        while (true)
+        bool continueq = true;
+        while (continueq)
         {
             Console.Write("$ ");
             var command = Console.ReadLine() ?? "";
-            Console.WriteLine($"{command}: command not found");
+            continueq = Eval(command);
         }
 
     }
