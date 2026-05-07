@@ -70,6 +70,7 @@ class Program
                 "exit",
                 "echo",
                 "type",
+                "pwd",
             };
 
             var typecmd = parsed[1];
@@ -92,7 +93,11 @@ class Program
             }
             return true;
         }
-        else
+        else if (cmd == "pwd")
+        {
+            Console.WriteLine(Directory.GetCurrentDirectory());
+            return true;
+        } else
         {
             var file = SearchExecutable(cmd);
             if (file == null)
