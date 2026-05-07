@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Text;
 
 class Program
 {
@@ -56,7 +57,7 @@ class Program
     static string[] Lex(string command)
     {
         var state = LexerState.NORMAL;
-        var current = "";
+        var current = new StringBuilder();
         List<string> words = [];
 
         for (var i = 0; i < command.Length; i++)
@@ -70,10 +71,10 @@ class Program
                     switch (c)
                     {
                         case ' ':
-                            if (current != "")
+                            if (current.Length != 0)
                             {
-                                words.Add(current);
-                                current = "";
+                                words.Add(current.ToString());
+                                current.Clear();
                             }
                             break;
                         case '\'':
@@ -86,7 +87,7 @@ class Program
                             state = LexerState.ESCAPE;
                             break;
                         default:
-                            current += c;
+                            current.Append(c);
                             break;
                     }
                     break;
@@ -97,7 +98,7 @@ class Program
                     }
                     else
                     {
-                        current += c;
+                        current.Append(c);
                     }
                     break;
                 case LexerState.DOUBLE_QUOTE:
@@ -107,16 +108,16 @@ class Program
                     }
                     else if (c == '\\' && i + 1 < command.Length && "\"\\$`".Contains(command[i + 1]))
                     {
-                        current += command[i + 1];
+                        current.Append(command[i + 1]);
                         i++;
                     }
                     else
                     {
-                        current += c;
+                        current.Append(c);
                     }
                     break;
                 case LexerState.ESCAPE:
-                    current += c;
+                    current.Append(c);
                     state = LexerState.NORMAL;
                     break;
             }
@@ -124,7 +125,7 @@ class Program
 
         if (current.Length > 0)
         {
-            words.Add(current);
+            words.Add(current.ToString());
         }
         return [.. words];
     }
