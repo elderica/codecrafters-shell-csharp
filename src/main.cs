@@ -71,6 +71,7 @@ class Program
                 "echo",
                 "type",
                 "pwd",
+                "cd",
             };
 
             var typecmd = parsed[1];
@@ -97,7 +98,22 @@ class Program
         {
             Console.WriteLine(Directory.GetCurrentDirectory());
             return true;
-        } else
+        }
+        else if (cmd == "cd")
+        {
+            var dirparam = parsed[1];
+
+            var dirpath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), dirparam));
+            var dir = new DirectoryInfo(dirpath);
+            if (!dir.Exists)
+            {
+                Console.WriteLine($"cd: {dir.FullName}: No such file or directory");
+                return true;
+            }
+            Directory.SetCurrentDirectory(dir.FullName);
+            return true;
+        }
+        else
         {
             var file = SearchExecutable(cmd);
             if (file == null)
@@ -132,7 +148,7 @@ class Program
     static void Main()
     {
         bool continueq = true;
-        while (continueq)
+        do
         {
             Console.Write("$ ");
             var command = Console.ReadLine() ?? "";
@@ -140,7 +156,6 @@ class Program
             {
                 continueq = Eval(command);
             }
-        }
-
+        } while (continueq);
     }
 }
