@@ -98,7 +98,8 @@ class Program
             if (file == null)
             {
                 Console.WriteLine($"{cmd}: command not found");
-            } else
+            }
+            else
             {
                 using var process = new Process();
                 process.StartInfo.UseShellExecute = false;
@@ -108,7 +109,8 @@ class Program
                 {
                     process.StartInfo.FileName = file.FullName;
                     process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
-                } else
+                }
+                else
                 {
                     process.StartInfo.FileName = "/bin/sh";
                     process.StartInfo.Arguments = $"-c \"{string.Join(" ", parsed)}\"";
@@ -118,7 +120,7 @@ class Program
                 Console.Write(process.StandardOutput.ReadToEnd());
                 Console.Error.Write(process.StandardError.ReadToEnd());
             }
-            
+
             return true;
         }
     }
