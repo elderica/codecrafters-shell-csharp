@@ -1,4 +1,6 @@
 
+using System.Diagnostics;
+
 class Program
 {
     static FileInfo? SearchExecutable(string cmd)
@@ -50,7 +52,7 @@ class Program
 
     static bool Eval(string command)
     {
-        var parsed = command.Split(" ");
+        var parsed = command.Split(" ") ?? [];
         var cmd = parsed.First();
         if (cmd == "exit")
         {
@@ -92,7 +94,18 @@ class Program
         }
         else
         {
-            Console.WriteLine($"{cmd}: command not found");
+            var file = SearchExecutable(cmd);
+            if (file == null)
+            {
+                Console.WriteLine($"{cmd}: command not found");
+            } else
+            {
+                using var process = new Process();
+                process.StartInfo.FileName = file.FullName;
+                process.StartInfo.Arguments = string.Join(" ", parsed[1..]);
+                process.Start();
+            }
+            
             return true;
         }
     }
