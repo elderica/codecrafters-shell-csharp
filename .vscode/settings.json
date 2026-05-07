@@ -4,6 +4,7 @@
         "envpath",
         "execbits",
         "filemode",
+        "specialchars",
         "typecmd"
     ]
 }

@@ -1,6 +1,5 @@
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 class Program
 {
@@ -51,9 +50,85 @@ class Program
         return null;
     }
 
+    enum LexerState { NORMAL, SINGLE_QUOTE, DOUBLE_QUOTE, ESCAPE }
+
+    static string[] Lex(string command)
+    {
+        var state = LexerState.NORMAL;
+        var current = "";
+        List<string> words = [];
+
+        for (var i = 0; i < command.Length; i++)
+        {
+            var c = command[i];
+            //Console.WriteLine($"c:{c} state:{state} current:{current}");
+            
+            switch (state)
+            {
+                case LexerState.NORMAL:
+                    switch (c)
+                    {
+                        case ' ':
+                            if (current != "")
+                            {
+                                words.Add(current);
+                                current = "";
+                            }
+                            break;
+                        case '\'':
+                            state = LexerState.SINGLE_QUOTE;
+                            break;
+                        case '"':
+                            state = LexerState.DOUBLE_QUOTE;
+                            break;
+                        case '\\':
+                            state = LexerState.ESCAPE;
+                            break;
+                        default:
+                            current += c;
+                            break;
+                    }
+                    break;
+                case LexerState.SINGLE_QUOTE:
+                    if (c == '\'')
+                    {
+                        state = LexerState.NORMAL;
+                    } else
+                    {
+                        current += c;
+                    }
+                    break;
+                case LexerState.DOUBLE_QUOTE:
+                    if (c == '"')
+                    {
+                        state = LexerState.NORMAL;
+                    } else if (c == '\\'  && i+1 < command.Length && "\"\\$`".Contains(command[i+1]))
+                    {
+                        current += command[i+1];
+                        i++;
+                    } else
+                    {
+                        current += c;
+                    }
+                    break;
+                case LexerState.ESCAPE:
+                    current += c;
+                    state = LexerState.NORMAL;
+                    break;
+            }
+        }
+
+        if (current.Length > 0)
+        {
+            words.Add(current);
+        }
+        return [.. words];
+    }
+
     static bool Eval(string command)
     {
-        var parsed = command.Split(" ") ?? [];
+        var parsed = Lex(command);
+        if (parsed.Length == 0) return true;
         var cmd = parsed.First();
         if (cmd == "exit")
         {
@@ -61,7 +136,7 @@ class Program
         }
         else if (cmd == "echo")
         {
-            Console.WriteLine(command[5..]);
+            Console.WriteLine(string.Join(' ', parsed[1..]));
             return true;
         }
         else if (cmd == "type")
